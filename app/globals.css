@@ -1,26 +1,43 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #EFF1EA;
+  --fg: #393833;
+  --mid: #949189;
+  --surface: #FFFFFF;
+  --success: #5C6B54;
+  --working: #8B7D3C;
+  --error: #8B4C4C;
+  --hover: #4A4A43;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-bg: var(--bg);
+  --color-fg: var(--fg);
+  --color-mid: var(--mid);
+  --color-surface: var(--surface);
+  --color-success: var(--success);
+  --color-working: var(--working);
+  --color-error: var(--error);
+  --color-hover: var(--hover);
+  --font-sans: "Inter", sans-serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "Inter", sans-serif;
+  font-weight: 300;
+}
+
+/* Excalidraw monochrome overrides */
+.excalidraw .Island {
+  background: var(--surface) !important;
+  box-shadow: none !important;
+  border: 1px solid rgba(148, 145, 137, 0.2) !important;
+}
+
+.excalidraw {
+  --color-primary: var(--fg) !important;
+  --color-primary-light: var(--mid) !important;
 }
