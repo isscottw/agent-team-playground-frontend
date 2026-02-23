@@ -30,50 +30,76 @@ async function apiFetch<T>(path: string, options: FetchOptions = {}): Promise<T>
 }
 
 export const api = {
-  createSession(config: unknown, token?: string) {
-    return apiFetch<{ id: string }>("/api/sessions", {
+  // POST /api/sessions — creates AND starts the session
+  createSession(body: { agents: unknown[]; connections?: string[][]; api_keys: Record<string, string> }, token?: string) {
+    return apiFetch<{ session_id: string; agents: string[]; status: string }>("/api/sessions", {
       method: "POST",
-      body: JSON.stringify(config),
+      body: JSON.stringify(body),
       token,
     });
   },
 
-  startSession(sessionId: string, token?: string) {
-    return apiFetch<{ status: string }>(`/api/sessions/${sessionId}/start`, {
-      method: "POST",
-      token,
-    });
-  },
-
+  // DELETE /api/sessions/{id} — stop + cleanup
   stopSession(sessionId: string, token?: string) {
-    return apiFetch<{ status: string }>(`/api/sessions/${sessionId}/stop`, {
-      method: "POST",
+    return apiFetch<{ status: string }>(`/api/sessions/${sessionId}`, {
+      method: "DELETE",
       token,
     });
   },
 
-  sendMessage(sessionId: string, content: string, token?: string) {
-    return apiFetch<{ id: string }>(`/api/sessions/${sessionId}/messages`, {
+  // POST /api/sessions/{id}/chat — send user message
+  sendMessage(sessionId: string, message: string, token?: string) {
+    return apiFetch<{ status: string }>(`/api/sessions/${sessionId}/chat`, {
       method: "POST",
-      body: JSON.stringify({ content }),
+      body: JSON.stringify({ message }),
       token,
     });
   },
 
-  getSessions(token?: string) {
-    return apiFetch<{ id: string; status: string; createdAt: string }[]>(
-      "/api/sessions",
-      { token }
-    );
+  // POST /api/llm/test — validate API key
+  testLLMKey(provider: string, apiKey: string, model?: string) {
+    return apiFetch<{ status: string; provider: string; error?: string }>("/api/llm/test", {
+      method: "POST",
+      body: JSON.stringify({ provider, api_key: apiKey, model }),
+    });
   },
 
-  getSession(sessionId: string, token?: string) {
-    return apiFetch<{ id: string; status: string; messages: unknown[]; tasks: unknown[] }>(
-      `/api/sessions/${sessionId}`,
-      { token }
-    );
+  // GET /api/models
+  getModels() {
+    return apiFetch<{ providers: Record<string, unknown[]> }>("/api/models");
   },
 
+  // GET /api/history
+  getHistory(token?: string) {
+    return apiFetch<{ sessions: unknown[] }>("/api/history", { token });
+  },
+
+  // GET /api/history/{id}
+  getSessionHistory(sessionId: string, token?: string) {
+    return apiFetch<unknown>(`/api/history/${sessionId}`, { token });
+  },
+
+  // DELETE /api/history/{id}
+  deleteSessionHistory(sessionId: string, token?: string) {
+    return apiFetch<{ status: string }>(`/api/history/${sessionId}`, {
+      method: "DELETE",
+      token,
+    });
+  },
+
+  // Check if a session is still active on the backend
+  async checkSession(sessionId: string): Promise<boolean> {
+    try {
+      const res = await fetch(`${BASE_URL}/api/sessions/${sessionId}/stream`, {
+        method: "HEAD",
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  },
+
+  // SSE stream URL
   getStreamUrl(sessionId: string) {
     return `${BASE_URL}/api/sessions/${sessionId}/stream`;
   },

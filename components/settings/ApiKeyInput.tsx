@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Check, X, Loader2 } from "lucide-react";
+import { api } from "@/lib/api";
 import type { Provider } from "@/types";
 
 interface ApiKeyInputProps {
@@ -26,31 +27,12 @@ export function ApiKeyInput({
   const [testStatus, setTestStatus] = useState<"idle" | "testing" | "success" | "error">("idle");
 
   const handleTest = useCallback(async () => {
-    if (!value) return;
+    if (!value && provider !== "ollama") return;
     setTestStatus("testing");
 
     try {
-      // Simple validation: check key format
-      if (provider === "anthropic" && !value.startsWith("sk-ant-")) {
-        setTestStatus("error");
-        return;
-      }
-      if (provider === "openai" && !value.startsWith("sk-")) {
-        setTestStatus("error");
-        return;
-      }
-      // For ollama, try to reach the URL
-      if (provider === "ollama") {
-        try {
-          const res = await fetch(`${value}/api/tags`);
-          setTestStatus(res.ok ? "success" : "error");
-        } catch {
-          setTestStatus("error");
-        }
-        return;
-      }
-      // Basic format check passed
-      setTestStatus("success");
+      const result = await api.testLLMKey(provider, value || "");
+      setTestStatus(result.status === "valid" ? "success" : "error");
     } catch {
       setTestStatus("error");
     }
@@ -79,7 +61,7 @@ export function ApiKeyInput({
         variant="outline"
         size="sm"
         onClick={handleTest}
-        disabled={!value || testStatus === "testing"}
+        disabled={(!value && provider !== "ollama") || testStatus === "testing"}
         className="w-16 shrink-0"
       >
         {testStatus === "testing" && <Loader2 className="h-3 w-3 animate-spin" />}

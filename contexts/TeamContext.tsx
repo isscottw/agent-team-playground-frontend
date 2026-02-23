@@ -121,3 +121,7 @@ export function useTeam() {
   if (!context) throw new Error("useTeam must be used within TeamProvider");
   return context;
 }
+
+export function useOptionalTeam() {
+  return useContext(TeamContext);
+}

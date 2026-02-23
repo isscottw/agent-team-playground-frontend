@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button";
 import { useTeam } from "@/contexts/TeamContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
+import type { Message } from "@/types";
 
 export function ChatInput() {
   const [value, setValue] = useState("");
-  const { state } = useTeam();
+  const { state, dispatch } = useTeam();
   const { session } = useAuth();
   const isRunning = state.mode === "running";
 
@@ -17,13 +18,23 @@ export function ChatInput() {
     const trimmed = value.trim();
     if (!trimmed || !state.sessionId) return;
 
+    // Add user message to local state immediately
+    const userMsg: Message = {
+      id: `user-${Date.now()}`,
+      sessionId: state.sessionId,
+      role: "user",
+      content: trimmed,
+      timestamp: new Date().toISOString(),
+    };
+    dispatch({ type: "ADD_MESSAGE", message: userMsg });
     setValue("");
+
     try {
       await api.sendMessage(state.sessionId, trimmed, session?.access_token);
     } catch (err) {
       console.error("Failed to send message:", err);
     }
-  }, [value, state.sessionId, session]);
+  }, [value, state.sessionId, session, dispatch]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {

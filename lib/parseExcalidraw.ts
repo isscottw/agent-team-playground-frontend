@@ -1,4 +1,4 @@
-import type { ParsedTeam, ParsedAgent, ParsedConnection } from "@/types";
+import type { ParsedTeam, ParsedAgent, ParsedConnection, AgentRole } from "@/types";
 
 interface ExcalidrawElement {
   id: string;
@@ -7,6 +7,7 @@ interface ExcalidrawElement {
   y: number;
   width: number;
   height: number;
+  backgroundColor?: string;
   boundElements?: { id: string; type: string }[] | null;
   // Text elements bound to shapes
   containerId?: string | null;
@@ -15,6 +16,12 @@ interface ExcalidrawElement {
   startBinding?: { elementId: string } | null;
   endBinding?: { elementId: string } | null;
   isDeleted?: boolean;
+}
+
+/** Infer agent role from the element's background color. */
+function inferRoleFromElement(el: ExcalidrawElement): AgentRole {
+  if (el.backgroundColor === "#fef3c7") return "leader";
+  return "teammate";
 }
 
 export function parseExcalidrawScene(elements: ExcalidrawElement[]): ParsedTeam {
@@ -32,11 +39,13 @@ export function parseExcalidrawScene(elements: ExcalidrawElement[]): ParsedTeam 
   const agents: ParsedAgent[] = rectangles.map((rect) => {
     // Find bound text element for the name
     const boundText = textElements.find((t) => t.containerId === rect.id);
-    const name = boundText?.text || `Agent ${rect.id.slice(0, 4)}`;
+    const rawName = boundText?.text || `Agent ${rect.id.slice(0, 4)}`;
+    const name = rawName.replace(/\n/g, " ").replace(/\s+/g, " ");
 
     return {
       id: rect.id,
       name: name.trim(),
+      role: inferRoleFromElement(rect),
       x: rect.x,
       y: rect.y,
       width: rect.width,

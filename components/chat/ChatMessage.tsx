@@ -1,5 +1,6 @@
 "use client";
 
+import Markdown from "react-markdown";
 import type { Message } from "@/types";
 import { cn } from "@/utils/cn";
 
@@ -14,7 +15,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
   return (
     <div
       className={cn(
-        "px-4 py-3 border-b border-mid/10",
+        "px-5 py-3 border-b border-mid/10",
         isSystem && "bg-bg/50"
       )}
     >
@@ -34,9 +35,16 @@ export function ChatMessage({ message }: ChatMessageProps) {
           })}
         </span>
       </div>
-      <p className="text-sm font-light leading-relaxed whitespace-pre-wrap">
-        {message.content}
-      </p>
+
+      {isSystem ? (
+        <p className="text-sm font-light leading-relaxed whitespace-pre-wrap">
+          {message.content}
+        </p>
+      ) : (
+        <div className="prose prose-sm max-w-none text-fg prose-headings:text-fg prose-strong:text-fg prose-code:text-fg prose-code:bg-mid/10 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-code:before:content-none prose-code:after:content-none prose-pre:bg-mid/10 prose-pre:text-xs prose-pre:rounded prose-p:leading-relaxed prose-p:font-light">
+          <Markdown>{message.content}</Markdown>
+        </div>
+      )}
     </div>
   );
 }

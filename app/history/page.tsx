@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { TopBar } from "@/components/TopBar";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,19 +11,20 @@ import { ArrowLeft } from "lucide-react";
 interface SessionSummary {
   id: string;
   status: string;
-  createdAt: string;
+  created_at: string;
 }
 
 export default function HistoryPage() {
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const { session } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     async function load() {
       try {
-        const data = await api.getSessions(session?.access_token);
-        setSessions(data);
+        const data = await api.getHistory(session?.access_token);
+        setSessions(data.sessions as SessionSummary[]);
       } catch {
         // Failed to load sessions
       } finally {
@@ -39,9 +41,9 @@ export default function HistoryPage() {
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-2xl mx-auto px-6 py-8">
           <div className="flex items-center gap-3 mb-6">
-            <Link href="/team" className="text-mid hover:text-fg transition-colors">
+            <button onClick={() => router.back()} className="text-mid hover:text-fg transition-colors">
               <ArrowLeft className="h-4 w-4" />
-            </Link>
+            </button>
             <h1 className="text-base font-medium text-fg">Session History</h1>
           </div>
 
@@ -62,7 +64,7 @@ export default function HistoryPage() {
                       Session {s.id.slice(0, 8)}
                     </span>
                     <span className="text-[11px] text-mid ml-3">
-                      {new Date(s.createdAt).toLocaleDateString()} {new Date(s.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      {new Date(s.created_at).toLocaleDateString()} {new Date(s.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </span>
                   </div>
                   <span className="text-[11px] text-mid">{s.status}</span>

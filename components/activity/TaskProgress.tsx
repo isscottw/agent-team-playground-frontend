@@ -22,7 +22,7 @@ export function TaskProgress() {
             {task.status === "failed" && <span className="text-error">✗</span>}
           </span>
           <div className="flex-1 min-w-0">
-            <p className="font-light text-fg truncate">{task.description}</p>
+            <p className="font-light text-fg break-words">{task.description}</p>
             {task.assignedTo && (
               <p className="text-[10px] text-mid">{task.assignedTo}</p>
             )}

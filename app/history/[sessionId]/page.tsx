@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { TopBar } from "@/components/TopBar";
 import { ChatMessage } from "@/components/chat/ChatMessage";
@@ -14,6 +13,7 @@ export default function SessionReplayPage() {
   const params = useParams();
   const sessionId = params.sessionId as string;
   const { session } = useAuth();
+  const router = useRouter();
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -23,10 +23,32 @@ export default function SessionReplayPage() {
   useEffect(() => {
     async function load() {
       try {
-        const data = await api.getSession(sessionId, session?.access_token);
-        setMessages(data.messages as Message[]);
-        setTasks(data.tasks as Task[]);
-        setStatus(data.status);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const data = await api.getSessionHistory(sessionId, session?.access_token) as any;
+        // Map Supabase rows to frontend Message type
+        const rawMessages = data.messages || [];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const mapped: Message[] = rawMessages.map((m: any) => ({
+          id: String(m.id),
+          sessionId: m.session_id || sessionId,
+          role: m.from_agent === "user" ? "user" as const : "agent" as const,
+          agentName: m.from_agent === "user" ? undefined : m.from_agent,
+          content: m.text || "",
+          timestamp: m.timestamp || "",
+        }));
+        setMessages(mapped);
+        // Map Supabase task rows
+        const rawTasks = data.tasks || [];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const mappedTasks: Task[] = rawTasks.map((t: any) => ({
+          id: String(t.task_id || t.id),
+          sessionId: t.session_id || sessionId,
+          description: t.subject || "",
+          status: t.status || "pending",
+          assignedTo: t.owner || undefined,
+        }));
+        setTasks(mappedTasks);
+        setStatus(data.session?.status || "");
       } catch {
         // Failed to load session
       } finally {
@@ -44,9 +66,9 @@ export default function SessionReplayPage() {
         {/* Messages */}
         <div className="flex-1 overflow-y-auto border-r border-mid/15">
           <div className="px-4 py-3 border-b border-mid/15 flex items-center gap-3">
-            <Link href="/history" className="text-mid hover:text-fg transition-colors">
+            <button onClick={() => router.back()} className="text-mid hover:text-fg transition-colors">
               <ArrowLeft className="h-4 w-4" />
-            </Link>
+            </button>
             <span className="text-xs font-medium text-fg">
               Session {sessionId.slice(0, 8)}
             </span>

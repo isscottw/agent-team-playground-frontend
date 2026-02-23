@@ -1,8 +1,11 @@
 export type Provider = "anthropic" | "openai" | "kimi" | "ollama";
 
+export type AgentRole = "leader" | "teammate";
+
 export interface Agent {
   id: string;
   name: string;
+  role: AgentRole;
   provider: Provider;
   model: string;
   systemPrompt: string;
@@ -53,6 +56,7 @@ export interface SessionConfig {
 export interface ParsedAgent {
   id: string;
   name: string;
+  role: AgentRole;
   x: number;
   y: number;
   width: number;

@@ -48,29 +48,28 @@ export function CanvasToolbar({ onImport, onExport }: CanvasToolbarProps) {
   const handleRun = useCallback(async () => {
     if (state.agents.length === 0) return;
 
-    const teamConfig = {
-      name: state.teamName,
+    // Build request matching backend's SessionRequest model
+    const requestBody = {
       agents: state.agents.map((a) => ({
         name: a.name,
+        role: a.role || "teammate",
         provider: a.provider,
         model: a.model,
-        systemPrompt: a.systemPrompt,
+        system_prompt: a.systemPrompt || "You are a helpful AI assistant.",
         connections: a.connections,
       })),
+      connections: [] as string[][],
+      api_keys: keys,
     };
 
     try {
-      const { id } = await api.createSession(
-        { teamConfig, apiKeys: keys },
-        session?.access_token
-      );
-      dispatch({ type: "SET_SESSION_ID", sessionId: id });
-      await api.startSession(id, session?.access_token);
+      const result = await api.createSession(requestBody, session?.access_token);
+      dispatch({ type: "SET_SESSION_ID", sessionId: result.session_id });
       setMode("running");
     } catch (err) {
       console.error("Failed to start session:", err);
     }
-  }, [state.agents, state.teamName, keys, session, dispatch, setMode]);
+  }, [state.agents, keys, session, dispatch, setMode]);
 
   const handleStop = useCallback(async () => {
     if (!state.sessionId) return;
