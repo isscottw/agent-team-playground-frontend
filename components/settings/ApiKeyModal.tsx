@@ -32,7 +32,7 @@ export function ApiKeyModal({ open, onOpenChange }: ApiKeyModalProps) {
         <DialogHeader>
           <DialogTitle>API Keys</DialogTitle>
           <DialogDescription>
-            Keys are stored in memory only and never persisted.
+            Keys are stored locally in your browser and never sent to our servers.
           </DialogDescription>
         </DialogHeader>
 
