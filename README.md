@@ -2,7 +2,7 @@
 
 Visual canvas for designing and running multi-agent LLM teams. Draw agent hierarchies on an Excalidraw canvas, configure models and prompts, then watch agents collaborate in real-time.
 
-**Live:** [agent-team-playground-frontend.vercel.app](https://agent-team-playground-frontend.vercel.app)
+**Live:** [agent-team-playground.vercel.app](https://agent-team-playground.vercel.app)
 
 **Backend repo:** [agent-team-playground-backend](https://github.com/isscottw/agent-team-playground-backend)
 
